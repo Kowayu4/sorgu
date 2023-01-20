@@ -1,76 +1,50 @@
 <?php
-$customCSS = array();
-$customJAVA = array();
-$customCSS = array(
-    '<link href="../assets/plugins/DataTables/datatables.min.css" rel="stylesheet">',
-    '<link href="../assets/plugins/DataTables/style.css" rel="stylesheet">'
-);
-require '../server/baglan.php';
-require '../server/admincontrol.php';
 
-$page_title = 'Kullanıcı Ekle';
+include "../../server/authcontrol.php";
+include "../../server/baglan.php";
 
-include('inc/header_main.php');
-include('inc/header_sidebar.php');
-include('inc/header_native.php');
-
-date_default_timezone_set('Europe/Istanbul');
-
-?>
-<div class="overlay">
-        <video id="myvideo" autoplay="true" loop muted >
-            <source src="../assets/images/matrix.mp4" type="video/mp4">
-        </video>
-    </div>
-<div class="row">
-    <div class="col-xl-12 col-md-6">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title mb-4">Kullanıcı Ekle</h4>
-                    <div class="block-content tab-content">
-                        <div class="tab-pane active" role="tabpanel">
-                            <center>
-                                <input class="form-control" type="text" name="username" id="username" placeholder="Oluşturulacak anahtar için bir kullanıcı adı belirleyin"><br>
-                                <div class="result">
-                                </div>
-                                <button onclick="addKey()" class="btn waves-effect waves-light btn-rounded btn-primary" style="width: 100px; height: 36px; outline: none;"><i class="fas fa-plus"></i>&nbsp;Ekle</button>
-                            </center>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        function addKey() {
-            var username = $('#username').val();
-            if (username == '') {
-                alert('Lütfen bir kullanıcı adı belirleyin.');
-            } else {
-                $.ajax({
-                    url: '/admin/func/adduser.php',
-                    type: 'POST',
-                    data: {
-                        username: username
-                    },
-                    success: function(data) {
-                        data = JSON.parse(data);
-                        $('#username').val('');
-                        if (data.success == true) {
-                            $('.result').html('<div class="alert alert-success" role="alert"><strong>Başarılı!</strong> Anahtar oluşturuldu: ' + data.key + ' / Kullanıcı Adı: ' + data.username + '</div>');
-                        } else if (data.message == "username error") {
-                            $('.result').html('<div class="alert alert-danger" role="alert"><strong>Başarısız!</strong> Bu kullanıcı adı daha önceden alınmış.</div>');
-                        } else {
-                            $('.result').html('<div class="alert alert-danger" role="alert"><strong>Başarısız!</strong> Anahtar oluşturulamadı.</div>');
-                        }
-                    }
-                });
-            }
+if (isset($_POST['username'])) {
+    function generateRandomString($length = 10)
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
         }
-    </script>
-</div>
-<?php
-include('inc/footer_native.php');
-include('inc/footer_main.php');
-?>
+        return $randomString;
+    }
+
+    $key = generateRandomString(32);
+    $username = htmlspecialchars($_POST['username']);
+    $date = date("Y-m-d H:i:s");
+    $ekleyen = $_SESSION["k_adi"];
+
+    $sql = "SELECT * FROM `sh_kullanici` WHERE `k_adi`='$username'";
+    $res = $conn->query($sql);
+    
+    if ($conn->errno > 0) {
+        echo json_encode(array("success" => false));
+        die();
+    }
+
+    if ($res->num_rows > 0) {
+        echo json_encode(array("success" => false, "message" => "username error"));
+        die();
+    }
+
+    $sql = "INSERT INTO `sh_kullanici` (`k_key`, `k_adi`, `k_verified`, `k_time`, `k_ekleyen`) VALUES ('$key', '$username', 'true', '$date', '$ekleyen')";
+    $result = $conn->query($sql);
+
+    if ($result) {
+        echo json_encode(array("success" => true, "key" => $key, "username" => $username));
+        wizortbook($kullaniciURL, "Kullanıcı Denetleyicisi", "Kullanıcı Eklendi", "**$kadi** isimli yönetici sisteme yeni üye ekledi! Üye bilgileri; **Kullanıcı Adı: $username** - **Anahtar: $key**");
+        die();
+    } else {
+        echo json_encode(array("success" => false));
+        die();
+    }
+} else {
+    echo json_encode(array("success" => false));
+    die();
+}
