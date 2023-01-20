@@ -1,0 +1,6 @@
+{
+    "require": {
+        "guzzlehttp/guzzle": "^7.4",
+        "thiagoalessio/tesseract_ocr": "^2.12"
+    }
+}
