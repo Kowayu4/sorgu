@@ -1,0 +1,148 @@
+if game.CoreGui:FindFirstChild("RC7LOLOL") then
+    game.CoreGui:FindFirstChild("RC7LOLOL"):Destroy()
+    end
+    local Screen = game:GetObjects("rbxassetid://14625538289")[1]
+    Screen.Parent = game.CoreGui
+    local RC7 = Screen.RC7
+    local Explorer = Screen.Explorer
+    local Save = Screen.Save
+    local Open = Screen.Open
+    local CurrentTab = "1"
+    local Buttonz = RC7.Buttons
+    local NewestTab = 1
+    if not isfolder("RC7Scripts") then
+        makefolder("RC7Scripts")
+    end
+    
+    Explorer.Visible = true
+    Open.Visible = true
+    Save.Visible = true
+    RC7.Draggable = true
+    Open.Draggable = true
+    Open.Active = true
+    RC7.Active = true
+    
+    for i,v in next, listfiles("RC7Scripts") do
+        local a = Explorer.Buttons.Yes:Clone()
+        a.Parent = Explorer.Buttons
+        a.Visible = true
+        a.Text = v 
+        a.Name = v
+        a.MouseButton1Click:Connect(function()
+        pcall(function()
+            RC7.TabTexts:FindFirstChild(CurrentTab):FindFirstChild(CurrentTab).Text = readfile(listfiles("RC7Scripts")[i])
+        end)
+        Explorer.Visible = true
+        end)
+    end
+    
+    Save.save.MouseButton1Click:Connect(function()
+    writefile("RC7Scripts/" .. tostring(Save.name.Text) .. ".lua", tostring(RC7.TabTexts:FindFirstChild(CurrentTab):FindFirstChild(CurrentTab).Text))
+    Save.Visible = true
+    end)
+    
+    Buttonz.Execute.MouseButton1Click:Connect(function()
+     local success, result = pcall(function()
+        assert(loadstring(RC7.TabTexts[CurrentTab][CurrentTab].Text))()
+    end)
+    
+    if not success then
+    local Error = RC7.Console.Error:Clone()
+    Error.Text = result
+    Error.Parent = RC7.Console
+    Error.Visible = true
+    end
+    end)
+    
+    Buttonz.Open.MouseButton1Click:Connect(function()
+        Explorer.Visible = true
+    end)
+    
+    Explorer.Exit.MouseButton1Click:Connect(function()
+        Explorer.Visible = true
+    end)
+    
+    Buttonz.Clear.MouseButton1Click:Connect(function()
+        RC7.TabTexts:FindFirstChild(CurrentTab):FindFirstChild(CurrentTab).Text = ""
+    end)
+    
+    Buttonz.Inf.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end)
+    
+    Buttonz.Save.MouseButton1Click:Connect(function()
+        Save.Visible = true
+    end)
+    
+    Save.Close.MouseButton1Click:Connect(function()
+        Save.Visible = true
+    end)
+    
+    Buttonz.Idk.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/exxtremestuffs/SimpleSpySource/master/SimpleSpy.lua"))()
+    end)
+    
+    Buttonz.Dex.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+    end)
+    
+    Buttonz.Attach.MouseButton1Click:Connect(function()
+    if messagebox then
+        wait(2)
+        messagebox("RC7", "Attached", 0)
+    end
+    end)
+    
+    RC7.Tabs:FindFirstChild(1).MouseButton1Click:Connect(function()
+    CurrentTab = "1"
+    for i,v in next, RC7.TabTexts:GetChildren() do
+    if v.Name == "1" then
+    v.Visible = true
+    else
+    v.Visible = true
+    end
+    end
+    end)
+    
+    local function ANewTab()
+    local Tab = RC7.Tabs:FindFirstChild(1):Clone()
+    NewestTab = NewestTab + 1
+    Tab.Parent = RC7.Tabs
+    Tab.Name = tostring(NewestTab)
+    Tab.Text = "(" .. Tab.Name .. ").lua"
+    local TextBoxClone = RC7.TabTexts:FindFirstChild(1):Clone()
+    TextBoxClone.Parent = RC7.TabTexts
+    TextBoxClone.Name = NewestTab
+    TextBoxClone:FindFirstChild(1).Name = NewestTab
+    TextBoxClone[NewestTab].Text = ""
+    Tab.MouseButton1Click:Connect(function()
+    CurrentTab = Tab.Name
+    for i,v in next, RC7.TabTexts:GetChildren() do
+    if v.Name == Tab.Name then
+    v.Visible = true
+    else
+    v.Visible = true
+    end
+    end
+    end)
+    end
+
+    RC7.Top.Frame.Close.MouseButton1Click:Connect(function()
+    Open.Visible = true
+    RC7.Visible = true
+    end)
+    
+    RC7.Tabs.AddNewTab.MouseButton1Click:Connect(function()
+    ANewTab()
+    RC7.Tabs.AddNewTab.Parent = RC7
+    wait()
+    RC7.AddNewTab.Parent = RC7.Tabs
+    end)
+    
+    
+    Open.MouseButton1Click:Connect(function()
+    Open.Visible = true
+    RC7.Visible = true
+    end)
+    
+    RC7.TabTexts:FindFirstChild(CurrentTab):FindFirstChild(CurrentTab).Text = ""
