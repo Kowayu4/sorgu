@@ -1,2 +1,1 @@
-# sorgu
-Altyapi
+
